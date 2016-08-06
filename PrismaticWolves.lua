@@ -1,4 +1,4 @@
-hexchat.register("PrismaticWolves","dev-5","Cut-Aware Colorscript");
+hexchat.register("PrismaticWolves","dev-5.3","Cut-Aware Colorscript");
 
 codes =
 {
@@ -30,14 +30,15 @@ colourHash =
   ['"'] = "dark_blue",
   ['='] = "orange",
   ['$'] = "dark_red",
-  ['\xa7'] = "dark_green"
+  ['§'] = "dark_green"
 }
-colourPattern='(\xC2?)(["=%$%\xa7])'
+colourPattern='([\xC2-\xF4]?[\xC2-\xF4]?[\xC2-\xF4]?["=%$%\xa7])'
 
 formatHash = {}
 
 urc = '\xC2'
 
+--utf8char = "[\0-\x7F\xC2-\xF4][\x80-\xBF]*"
 sicTags = {"[sic]"}
 autoSicTags = {"https:","http:","ftp:","[sic]"}
 
@@ -76,7 +77,7 @@ function loadConfigStr(cfg_str)
   for k,v in cfg_str:gmatch("%[([^%s]+)%]=%[([%w_]+)%]") do
     if (codes[v]) then
       nch[k]=v
-      ncp=ncp .. "%" .. k
+      ncp=ncp .. "%" .. k:sub(-1,-1) --only use very last byte as pattern
       valid=valid+1
       --print("K: " .. k .. " v: " .. v)
     end
@@ -85,7 +86,7 @@ function loadConfigStr(cfg_str)
   if valid > 0 then
 
     colourHash=nch;
-    colourPattern="(\xC2?)(["..ncp.."])"
+    colourPattern="([\xC2-\xF4]?[\xC2-\xF4]?[\xC2-\xF4]?["..ncp.."])"
   end
 
 end
@@ -112,10 +113,10 @@ hexchat.hook_command("setcolorcode", function (words, words_eol)
 
   --print("bytes:", words[2]:byte(1,4));
   if(#words < 2) then print("Not enough parameters; character and colour required")
-  elseif (#(words[2]:sanitize()) > 1) then print('Only single characters supported(note, for " you may need to type "")')
+  --elseif (#(words[2]:sanitize()) > 1) then print('Only single characters supported(note, for " you may need to type "")')
   elseif (codes[words[3]]==nil) then print("Unknown colour")
   else
-    alterColorCode(words[2]:sanitize(), words[3])
+    alterColorCode(words[2], words[3])
   end
 
   return hexchat.EAT_ALL;
@@ -126,7 +127,7 @@ end, "Usage: /setcolorcode <character> <color>;    Sets the colorcode character 
 hexchat.hook_command("setpwconfig", function (words, words_eol)
 
   --print("par "..words_eol[2])
-  if words_eol[2] then loadConfigStr(words_eol[2]:sanitize());
+  if words_eol[2] then loadConfigStr(words_eol[2]);
   else print("No config-string given") end
 
   return hexchat.EAT_ALL;
@@ -148,7 +149,7 @@ function colourText(text, cs)
     prefix = codes[colourHash[cs[#cs]]]
   end
 
-  local function cr(utf,t)
+  local function cr(t)
     if(cs[#cs]==t) then
       table.remove(cs);
       if(#cs==0) then return "\x0f"
