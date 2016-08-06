@@ -1,4 +1,4 @@
-hexchat.register("PrismaticWolves","dev-5.4","Cut-Aware Colorscript");
+hexchat.register("PrismaticWolves","dev-6.1","Cut-Aware Colorscript");
 
 codes =
 {
@@ -19,8 +19,8 @@ codes =
     gray= '\x0314',
     light_gray= '\x0315',
 
-    --bold= '\x02',
-    --underline= '\x1f',
+    bold= '\x02',
+    underline= '\x1f',
 
     --reset= '\x0f'
 };
@@ -30,9 +30,11 @@ colourHash =
   ['"'] = "dark_blue",
   ['='] = "orange",
   ['$'] = "dark_red",
-  ['§'] = "dark_green"
+  ['§'] = "dark_green",
+  ['*'] = "bold",
+  ['_'] = "underline"
 }
-colourPattern='([\xC2-\xF4]?[\xC2-\xF4]?[\xC2-\xF4]?["=%$%\xa7])'
+colourPattern='([\xC2-\xF4]?[\xC2-\xF4]?[\xC2-\xF4]?["=%$%\xa7%*%_])'
 
 formatHash = {}
 
@@ -151,9 +153,10 @@ function colourText(text, cs)
 
   local function cr(t)
     if not colourHash[t] then return t end -- make sure we have the correct character
+    if colourHash[t]=="bold" or colourHash[t]=="underline" then return codes[colourHash[t]] end
     if(cs[#cs]==t) then
       table.remove(cs);
-      if(#cs==0) then return "\x0f"
+      if(#cs==0) then return "\x03"
       else return codes[colourHash[cs[#cs]]] end
     else
       table.insert(cs,t)
