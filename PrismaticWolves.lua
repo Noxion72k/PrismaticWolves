@@ -1,4 +1,4 @@
-hexchat.register("PrismaticWolves","dev-5.3","Cut-Aware Colorscript");
+hexchat.register("PrismaticWolves","dev-5.4","Cut-Aware Colorscript");
 
 codes =
 {
@@ -150,6 +150,7 @@ function colourText(text, cs)
   end
 
   local function cr(t)
+    if not colourHash[t] then return t end -- make sure we have the correct character
     if(cs[#cs]==t) then
       table.remove(cs);
       if(#cs==0) then return "\x0f"
